@@ -21,7 +21,7 @@ class Activation_Layer():
 
 
 class Tanh():
-    def forward(self, input_dense):
+    def forward(self, input_dense, *args):
         self.input_dense = input_dense
         self.output_activation = np.tanh(input_dense)
         return self.output_activation
@@ -32,7 +32,7 @@ class Tanh():
 
 
 class ReLU():
-    def forward(self, input_dense):
+    def forward(self, input_dense, *args):
         self.input_dense = input_dense
         self.output_activation = np.maximum(self.input_dense, 0)
         return self.output_activation
@@ -43,7 +43,7 @@ class ReLU():
 
 
 class Sigmoid():
-    def forward(self, input_dense):
+    def forward(self, input_dense, *args):
         self.input_dense = input_dense
         self.output_activation = 1 / (1 + np.exp(- self.input_dense))
         return self.output_activation
@@ -56,7 +56,7 @@ class Sigmoid():
 class Softmax_CrossEntropy(): # < ---- softmax con crossentropy loss, usar con softmax_crossentropy_der en derivada de loss
     """Softmax with crossentropy loss, use in conjunction with softmax_crossentropy_der as loss derivative
     """
-    def forward(self, input_dense):
+    def forward(self, input_dense, *args):
         self.input_dense = input_dense
         self.normalized = self.input_dense - np.max(self.input_dense)
         self.exponentials = np.exp(self.normalized)
@@ -70,18 +70,18 @@ class Softmax_CrossEntropy(): # < ---- softmax con crossentropy loss, usar con s
 class Softmax():   # <--- solo usar sin crossentropy loss
     """Softmax indenpendient of crossentropy loss, if crossentropy loss is requiered use cross_entropy_loss_der as derivative of loss function.
     """
-    def forward(self, input):
+    def forward(self, input, *args):
         self.input=input
         self.normalized = self.input - np.max(self.input)
         self.exponentials = np.exp(self.normalized)
-        self.softmaxforward = self.exponentials / np.sum(self.exponentials, axis=0)
-        return self.softmaxforward
+        self.output_activation = self.exponentials / np.sum(self.exponentials, axis=0)
+        return self.output_activation
     
     def backward(self, output_grad, learning_rate):
         self.softmax_der = np.array
-        for i in range(np.shape(self.softmaxforward[0])[0]):
+        for i in range(np.shape(self.output_activation[0])[0]):
             
-            vertical_i = self.softmaxforward.T[i].reshape(-1,1)
+            vertical_i = self.output_activation.T[i].reshape(-1,1)
             tiled = np.tile(vertical_i, (1,len(vertical_i)))
             identityyyyy = np.identity(len(vertical_i))
             gradmatrix = tiled * (identityyyyy - tiled.T)
@@ -108,21 +108,6 @@ def mean_square_error_der(y, y_pred):
 def none_der(y, ypred):pass
 
 
-    
-#class Softmax_CrossEntropy():
-#    def forward(self, input_dense):
-#        self.input_dense = input_dense
-#        exponentials = np.exp(self.input_dense)
-#        self.output_activation = exponentials / np.sum(input)
-#        return self.output_activation
-#    def forward_crossentropy(self, y_true, input):
-#        self.xentropy_loss = np.mean(np.sum( - y_true *np.log(self.forward(input))))
-#        return self.xentropy_loss
-#    
-#    
-#    def backward(self, output_grad, learning_rate):
-#        softmax_crossentropy_der = ypred - y_true
-#        return softmax_crossentropy_der
     
 def cross_entropy_loss(y, y_pred):
     m = np.shape(y[1])[0]
@@ -153,70 +138,3 @@ def softmaxuda(x):
     return e_x / e_x.sum(axis=0) # only difference
 
 
-##### Pruebas #####
-
-"""receptaculos2=np.array([[1,0,1],[0,2,0],[0,0,3],[0,-4,0],[0,0,5]]).T
-retorno = np.array([[1, 0, 0], [0, 0, 1], [0, 1, 0], [0, 1, 0], [1, 0, 0]]).T
-receptaculoscorto = np.array([[2, 1, 1]]).T
-retornocorto = np.array([[1, 2, 1]]).T
-
-softmax = Softmax()
-xentrop = cross_entropy_loss(retorno, softmax.forward(receptaculos2))
-derxentrop = cross_entropy_loss_der(retorno, softmax.forward(receptaculos2))
-final = softmax.backward(derxentrop, 0.1)
-
-softmaxconjunta = Softmax_CrossEntropy()
-xentrop2 = cross_entropy_loss(retorno, softmaxconjunta.forward(receptaculos2))
-derxentrop2 = softmax_crossentropy_der(retorno, softmaxconjunta.forward(receptaculos2))
-final2 = softmaxconjunta.backward(derxentrop2, 0.1)
-
-sigmoide = Sigmoid()"""
-
-"""
-
-#print(receptaculoscorto)
-print("softmax separado")
-print(softmax.forward(receptaculos2))
-print("cross entropy: ",xentrop)
-print("der_crossentropy",derxentrop)
-print("salida")
-print(final)
-#print(receptaculos2*retorno)
-#print(np.diagflat(receptaculos2.size))
-#print(final)
-
-print("softmax_conjunta")
-print(softmaxconjunta.forward(receptaculos2))
-print("crossentropy",xentrop2)
-print("dercrossentropy", derxentrop2)
-print("salida2")
-print(final2)
-
-print("udasol: ", softmaxuda(receptaculos2))
-#
-#print("mse", mean_square_error_der(retornocorto, receptaculoscorto))
-#print(receptaculos2.shape[1])
-#print(retornocorto * 1/softmax.forward(receptaculoscorto))
-#print((np.sum(retornocorto * 1/softmax.forward(receptaculoscorto),axis=1, keepdims=True))*1/receptaculoscorto.shape[1])
-#print(np.sum(receptaculos2, axis=1, keepdims=True))
-
-print("sigmoide")
-print(sigmoide.forward(receptaculos2))
-print("mse: ",mean_square_error(retorno,sigmoide.forward(receptaculos2)))
-print("mse der: ",mean_square_error_der(retorno,sigmoide.forward(receptaculos2)))
-print("salidad sigmoide")
-print(sigmoide.backward(mean_square_error_der(retorno,sigmoide.forward(receptaculos2)), 0.1))
-
-print("pruebas:")
-
-print("dercross sobre retorno corto: ", cross_entropy_loss_der(retornocorto, receptaculoscorto))
-dercross = cross_entropy_loss_der(retornocorto, receptaculoscorto)
-print(softmax.forward(receptaculoscorto))
-print (softmax.backward(retornocorto, 0.1))
-print(np.size(retornocorto))
-print(len(retornocorto))
-print(np.tile(retornocorto, np.size(retornocorto)))
-print (retornocorto * (np.identity(np.size(retornocorto)) - np.transpose(retornocorto)))
-
-
-"""
