@@ -4,6 +4,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 
+
 from neurons import Dense
 from activations import Tanh
 from activations import mean_square_error, mean_square_error_der, cross_entropy_loss, softmax_crossentropy_der, cross_entropy_loss_der
@@ -61,12 +62,13 @@ class Net_Propper():
             if x==0:
                 
                 self.neurons.append(Dense(self.inputs, layerneurons[x],self.batchsize))
-                
+                #print(Dense(self.inputs, layerneurons[x],self.batchsize))
             else:
                 
                 self.neurons.append(Dense(layerneurons[x-1], layerneurons[x], self.batchsize))
-                
+                #print(Dense(layerneurons[x-1], layerneurons[x], self.batchsize))
         self.neurons.append(Dense(layerneurons[-1], self.layerout, self.batchsize))
+        #print(Dense(layerneurons[-1], self.layerout, self.batchsize))
         self.network = []
         for i in range(self.numberoflayers):
             self.network.append(self.neurons[i])
@@ -76,9 +78,19 @@ class Net_Propper():
         self.losscalder = losscalder
         self.epochs = epochs
         self.learningrate = learning_rate
+        self.epochcounter = 0 # not working
+        self.lapmarc = 0 # not working
     
     def control_function(self):
         print(self.network)
+    
+    def starttrain(self, shower = False, graph = False):  # not working
+        self.epochcounter = 0 
+        self.lapmarc = 0
+        
+        self.weightslist, self.biaslist = self.train(shower, graph)
+        
+        return self.weightslist, self.biaslist
         
     
     def train(self, shower = False, graph = False):
@@ -97,15 +109,17 @@ class Net_Propper():
         errorrs = []
         self.weightslist = []
         self.biaslist = []
+        self.epochcounter = 0
 
         for e in range(self.epochs):
             self.weightslist = []
             self.biaslist = []
+            self.lapmarc = 0
 
             output = self.inputtrain
             for layer in self.network:
                 output = layer.forward(output)
-                
+                self.lapmarc+=1
             
             
 
@@ -115,12 +129,14 @@ class Net_Propper():
 
             for layer in reversed(self.network):
                 grad = layer.backward(grad, self.learningrate)
+                self.lapmarc+=1
                 if isinstance(layer,Dense):
                     self.weightslist.append(layer.weights)
                     self.biaslist.append(layer.biases)
 
             error /=len(self.inputtrain)
             errorrs.append(error)
+            self.epochcounter =((self.epochcounter+1)/self.epochs)*100
             if shower: 
                 print(f"{e + 1}/{self.epochs}, error={error}")
             self.weightslist.reverse()
@@ -132,6 +148,10 @@ class Net_Propper():
         print("training ended")
 
         return self.weightslist, self.biaslist 
+    
+    def countinlaps(self):
+        
+        pass
     
     def results_translator(self, output):  #converts results data in one hot matrix
         self.trysmatrixfiltered = np.array
