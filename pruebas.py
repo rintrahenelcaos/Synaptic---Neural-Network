@@ -148,3 +148,4 @@ print(retornocorto)
 derivativesoftmaxparcial = tiledsalidaforward * (np.identity(len(salidaforward)) - np.transpose(tiledsalidaforward))
 print(derivativesoftmaxparcial)
 """
+
