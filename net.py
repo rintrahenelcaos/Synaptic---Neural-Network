@@ -1,17 +1,13 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-import matplotlib as mpl
 import matplotlib.pyplot as plt
 
 
 from neurons import Dense
-from activations import Tanh
-from activations import mean_square_error, mean_square_error_der, cross_entropy_loss, softmax_crossentropy_der, cross_entropy_loss_der
-from activations import ReLU
-from activations import Sigmoid
-from activations import Softmax_CrossEntropy
-from activations import Softmax
+from activations import mean_square_error
+
+from config import *
+
 
 
 pulsosimp =np.array( [[1,2,3]]).T
@@ -31,10 +27,56 @@ Y2 = np.array([[1, 0], [0, 1], [0, 1], [1, 0]]).T
 batch = tuple (zip(X, Y))
 errorrs = []
 
+def db_adapter(db):
+    """Reshapes db into columns
+
+    Args:
+        db (db): keras db
+
+    Returns:
+        tuple(list): (trainer_images, trainer_labels, test_images, test_labels)
+    """
+    
+    (train_images, train_labels), (test_images, test_labels) = db.load_data()
+
+    trainer_labels = (np.eye(10)[train_labels]).T
+    tester_labels = (np.eye(10)[test_labels]).T
+
+    train_images = train_images/255
+    test_images = test_images/255
+
+    trainer_images = train_images.reshape(60000,784).T
+    tester_images = test_images.reshape(10000, 784).T
+    
+    return trainer_images, trainer_labels, tester_images, tester_labels
+    
+def net_controller():
+    """Controls consistency in NN and launches it
+    """
+    print("Welcome to Synapsis", end = "\n")
+    print("\n")
+    
+    if len(NEURONS)+1 == len(ACTIVATIONS):
+        print("="*50+" Training "+"="*50, end= "\n")
+        print("\n")
+    
+        data = DATA
+
+        trainer_images, trainer_labels, tester_images, tester_labels = db_adapter(data)
+    
+        netter = Net_Propper(trainer_images, trainer_labels, NEURONS, ACTIVATIONS, EPOCHS, LEARNING_RATE, LOSS_FUNC, LOSS_DER_FUNC)
+        
+        traindewei, trainedbi = netter.train(SHOWER, GRAPH)
+        
+        if TEST:
+        
+            netter.test(traindewei,trainedbi, tester_images, tester_labels, VS)  
+    else: print("Error: Number of layers must be equal to number of assign activations minus 1")
+    
 
 
 class Net_Propper():
-    def __init__(self, inputtrain, expected, layerneurons, activations, epochs, learning_rate, losscalc, losscalder):
+    def __init__(self, inputtrain, expected, layerneurons, activations, epochs, learning_rate, losscalc, losscalder, show_net = True):
         """Neural Natework generating class
         IMPORTANT: All arrays must be in columns
 
@@ -62,13 +104,13 @@ class Net_Propper():
             if x==0:
                 
                 self.neurons.append(Dense(self.inputs, layerneurons[x],self.batchsize))
-                #print(Dense(self.inputs, layerneurons[x],self.batchsize))
+                
             else:
                 
                 self.neurons.append(Dense(layerneurons[x-1], layerneurons[x], self.batchsize))
-                #print(Dense(layerneurons[x-1], layerneurons[x], self.batchsize))
+                
         self.neurons.append(Dense(layerneurons[-1], self.layerout, self.batchsize))
-        #print(Dense(layerneurons[-1], self.layerout, self.batchsize))
+        
         self.network = []
         for i in range(self.numberoflayers):
             self.network.append(self.neurons[i])
@@ -80,9 +122,21 @@ class Net_Propper():
         self.learningrate = learning_rate
         self.epochcounter = 0 # not working
         self.lapmarc = 0 # not working
+        
+        if show_net: self.control_function()
+        
+        
     
     def control_function(self):
-        print(self.network)
+        """ Shows Neural Network before training
+        """
+        print("Database to evaluate: ", DATA.__doc__, end= "\n")
+        print("Network to train:")
+        for i in range(0,len(self.network), 2):
+            
+            print(str(self.network[i])+", activation function: ", self.network[i+1], end = "\n")
+        print("\n")
+        
     
     def starttrain(self, shower = False, graph = False):  # not working
         self.epochcounter = 0 
@@ -91,7 +145,7 @@ class Net_Propper():
         self.weightslist, self.biaslist = self.train(shower, graph)
         
         return self.weightslist, self.biaslist
-        
+    
     
     def train(self, shower = False, graph = False):
         """Network Training Function
@@ -111,6 +165,8 @@ class Net_Propper():
         self.biaslist = []
         self.epochcounter = 0
 
+        print("Progress: ")
+        
         for e in range(self.epochs):
             self.weightslist = []
             self.biaslist = []
@@ -139,21 +195,46 @@ class Net_Propper():
             self.epochcounter =((self.epochcounter+1)/self.epochs)*100
             if shower: 
                 print(f"{e + 1}/{self.epochs}, error={error}")
+            else:
+                
+                self.progress(int((e+1)/self.epochs*100))
+                
             self.weightslist.reverse()
             self.biaslist.reverse()
         
                 
         if graph:
             self.grapher(errorrs)
-        print("training ended")
+        print("\n")
+        print("Training complete", end = "\n")
+        print(f"Final error: {error}")
 
         return self.weightslist, self.biaslist 
     
-    def countinlaps(self):
+    def progress(self, percent=0, width=200):
+        """Shows progress bar
+
+        Args:
+            percent (int, optional): Previous progress. Defaults to 0.
+            width (int, optional): Progress bar width. Defaults to 100.
+        """
+        left = width * percent // 100
+        right = width - left
         
-        pass
+        print('\r[', '#' * left, ' ' * right, ']',
+              f' {percent:.0f}%',
+              sep='', end='', flush=True)
     
-    def results_translator(self, output):  #converts results data in one hot matrix
+    def results_translator(self, output):  
+        """ Converts results data in one hot matrix
+
+        Args:
+            output (np.array): results array
+
+        Returns:
+            np.array: one hot matrix
+        """
+        
         self.trysmatrixfiltered = np.array
         self.result = output.T
         trys = self.result.shape[0]
@@ -165,7 +246,17 @@ class Net_Propper():
                 self.trysmatrixfiltered = filtered
         return self.trysmatrixfiltered
     
-    def results_vs_y(self, trysmatrix, y):  # compares the results of the test
+    def results_vs_y(self, trysmatrix, y):  
+        """ Compares the results of the test
+
+        Args:
+            trysmatrix (np.array): one hot matrix
+            y (list): expected labels
+
+        Returns:
+            int: amount of positive matches
+        """
+        
         self.positives = 0
         yt = y.T
         self.trys = trysmatrix.shape[0]
@@ -176,7 +267,21 @@ class Net_Propper():
                 self.positives += 1
         return self.positives
     
-    def test(self, trainedwiehgtlist, trainedbiaseslist, testx, testy, vs = False):  #test function for the model
+    def test(self, trainedweihgtlist, trainedbiaseslist, testx, testy, vs = True):  
+        """ Test model
+
+        Args:
+            trainedweihgtlist (list): list of weights
+            trainedbiaseslist (list): list of biases
+            testx (list): data to test
+            testy (list): test labels
+            vs (bool, optional): Show accuracy as a %. Defaults to True.
+
+        Returns:
+            tuple: results of test
+        """
+        
+        
         error = 0
         
 
@@ -184,7 +289,7 @@ class Net_Propper():
         i = 0
         
         for layer in self.network:
-            output = layer.forward(output, True, trainedwiehgtlist[i], trainedbiaseslist[i])
+            output = layer.forward(output, True, trainedweihgtlist[i], trainedbiaseslist[i])
             
             if not(isinstance(layer, Dense)):
                 
@@ -195,208 +300,41 @@ class Net_Propper():
         self.pruebaoutput= output    
         error = self.losscalc(testy, output)
         mse = mean_square_error(testy, output)
+        print("\n")
+        print("="*50+" Testing "+"="*50, end= "\n")
+        print("\n")
+        print("Test Ended", end = "\n")
+        
         if vs:
             self.results_vs_y(self.results_translator(output), testy)
-            print("eficiencia: ", np.round((self.positives/self.trys)*100,2),"%")
-            print("fallos: ", 100-np.round((self.positives/self.trys)*100,2),"%")
-        return "Resultado del test:  error: "+ str(error), "//// mse: ", mse
+            
+            print("Accuracy: ", np.round((self.positives/self.trys)*100,2),"%")
+            print("Fails: ", 100-np.round((self.positives/self.trys)*100,2),"%")
+        print ("Test Results:  error: "+ str(error)+ "\nmse: ", mse)
     
     def grapher(self, errors, initial = None, final = None):
-        fig, ax = plt.subplots()  # Create a figure containing a single axes.
-        ax.plot(errors[initial:final])  # Plot some data on the axes.
-        plt.show()
-        
-            
-            
-        
+        """ Creates graph to show error in training
 
-
-class Net_Proper2():
-    def __init__(self, inputtrain, expected, capa1neurons, capa2neurons,activ1, activ2, activ3,epochs, learning_rate, losscalc, losscalder):
-        """ IMPORTANT: All arrays must be in columns
-        inputtrain: Training data array 
-        expected: Labels data array ----> onehot
-        capa1neurons: number of neurons  -----> integer
-        activ1: Activation for first layer  ------> activations module 
-        activ2: Activation for second layer  -----> activations module
-        epochs: epochs ---> integer
-        learning_rate: -----> float
-        losscalc: loss calculation function  -----> activations module
-        losscalder: loss calculation function derivative for backpropagation -----> activations module
+        Args:
+            errors (list): list of errors at training
+            initial (int, optional): Initial epoch. Defaults to None.
+            final (int, optional): Final epoch. Defaults to None.
         """
         
-        self.inputtrain = inputtrain
-        self.expected = expected
-        self.inputs = inputtrain.shape[0]
-        self.batchsize = inputtrain.shape[1]
-        self.capaout = expected.shape[0]
-        self.capa1neurons = capa1neurons
-        self.capa2neurons = capa2neurons
-        self.acitvation1 = activ1
-        self.activation2 = activ2
-        self.activation3 = activ3
-        
-        self.capa1 = Dense(self.inputs, self.capa1neurons, self.batchsize)
-        self.capa2 = Dense(self.capa1neurons, self.capa2neurons, self.batchsize)
-        self.capa3 = Dense(self.capa2neurons, self.capaout, self.batchsize)
-        self.network = [self.capa1, self.acitvation1, self.capa2, self.activation2, self.capa3, self.activation3]
-        self.losscalc = losscalc
-        self.losscalder = losscalder
-        self.epochs = epochs
-        self.learningrate = learning_rate
-        
-    def train3(self, shower = False, graph = False):
-        
-        
-        error = 0
-        errorrs = []
-
-        for e in range(self.epochs):
-
-            output = self.inputtrain
-            for layer in self.network:
-                output = layer.forward(output)
-                
-
-            error = self.losscalc(self.expected, output)
-
-            grad = self.losscalder(self.expected, output)
-
-            for layer in reversed(self.network):
-                grad = layer.backward(grad, self.learningrate)
-
-            error /=len(self.inputtrain)
-            errorrs.append(error)
-            if shower: 
-                print(f"{e + 1}/{self.epochs}, error={error}")
-                
-        if graph:
-            self.grapher(errorrs)
-
-        return self.capa1.weights, self.capa1.biases , self.capa2.weights, self.capa2.biases, self.capa3.weights, self.capa3.biases
-    
-    def results_translator(self, output):
-        self.trysmatrixfiltered = np.array
-        self.result = output.T
-        trys = self.result.shape[0]
-        for x in range(trys):
-            filtered = np.where(self.result[x]==self.result[x].max(),1 , 0)
-            try:
-                self.trysmatrixfiltered = np.vstack((self.trysmatrixfiltered,filtered))
-            except:
-                self.trysmatrixfiltered = filtered
-        return self.trysmatrixfiltered
-    
-    def results_vs_y(self, trysmatrix, y):
-        self.positives = 0
-        yt = y.T
-        self.trys = trysmatrix.shape[0]
-        for x in range(0,10000):
-            
-            
-            if (trysmatrix[x]==yt[x]).all():
-                self.positives += 1
-        return self.positives
-    
-    def test4(self, paramlist, testx, testy, vs = False):
-        error = 0
-        
-
-        output = testx
-        i = 0
-        counter = 0
-        for layer in self.network:
-            output = layer.forward(output, True, paramlist[i], paramlist[i+1])
-            print(i)
-            if isinstance(layer, Dense):
-                counter += 1
-                print("pasos por dense: ",counter)
-                if i != len(paramlist)-2:
-                    i = i+2
-                    
-            
-        error = self.losscalc(testy, output)
-        if vs:
-            self.results_vs_y(self.results_translator(output), testy)
-            print("eficiencia: ", np.round((self.positives/self.trys)*100,2),"%")
-            print("fallos: ", 100-np.round((self.positives/self.trys)*100,2),"%")
-    
-    def test2(self, weightstrained1, biasestrained1, weightstrained2, biasestrained2, testx, testy, vs = False):
-        error = 0
-        for e in range(self.epochs):
-
-            output = self.inputtrain
-            for layer in self.network:
-                output = layer.forward(output)
-            error = self.losscalc(self.expected, output)
-        if vs:
-            self.results_vs_y(self.results_translator(output), testy)
-            print("eficiencia: ", np.round((self.positives/self.trys)*100,2),"%")
-            print("fallos: ", 100-np.round((self.positives/self.trys)*100,2),"%")
-            
-    
-            
-        
-    
-    def test1(self, weights1, biases1, weights2, biases2, testx, testy, vs = False):
-        error = 0
-        self.inputs = testx.shape[0]
-        self.capaout = testy.shape[0]
-        self.batchsize = testx.shape[1]
-        capa1 = Dense(self.inputs, self.capa1neurons, self.batchsize)
-        activ1 = Tanh()
-        capa2 = Dense(self.capa1neurons, self.capaout, self.batchsize)
-        activ2 = Tanh()
-        output = testx
-        capa1.forward(output,True, weights1, biases1)
-        self.acitvation1.forward(capa1.potential)
-        capa2.forward(self.acitvation1.output_activation,True, weights2, biases2)
-        output = self.activation2.forward(capa2.potential)
-        self.outputtest = output
-        error = self.losscalc(testy, output)
-        mse = mean_square_error(testy, output)
-        if vs:
-            self.results_vs_y(self.results_translator(output), testy)
-            print("eficiencia: ", np.round((self.positives/self.trys)*100,2),"%")
-            print("fallos: ", 100-np.round((self.positives/self.trys)*100,2),"%")
-        #print("Resultado del test: "+str(testy)+" vs "+str(np.round(activ2.output_activation, 3)))
-        """errorizado = np.sum(abs((testy)-(np.round(activ2.output_activation, 3))))
-        return ("Resultado del test: " + str((testy)-(np.round(activ2.output_activation, 3))) + "  error: "+ str(errorizado))"""
-        return ("Resultado del test:  error: "+ str(error), "//// mse: ", mse)
-        
-    
-    def test (self, weights1, biases1, weights2, biases2, testx, testy):
-        error = 0
-        self.inputs = testx.shape[0]
-        self.capaout = testy.shape[0]
-        self.batchsize = testx.shape[1]
-        
-        
-        
-        self.capa1 = Dense(self.inputs, self.capa1neurons, self.batchsize)
-        self.capa2 = Dense(self.capa1neurons, self.capaout, self.batchsize) 
-        self.network = [self.capa1, self.acitvation1, self.capa2, self.activation2]
-        
-        self.capa1.forward(testx, weights1,biases1)
-        self.acitvation1.forward(self.capa1.potential)
-        self.capa2.forward(self.acitvation1.output_activation, weights2, biases2)
-        output = self.activation2.forward(self.capa2.potential)
-        error = self.losscalc(testy, output)
-        mse = mean_square_error(testy, output)
-        
-        
-        #errorizado = np.sum(abs((testy)-(np.round(self.activation2.output_activation, 3))))
-        return ("Resultado del test:  error: "+ str(error), "//// mse: ", mse)
-    
-    def grapher(self, errors, initial = None, final = None):
-        fig, ax = plt.subplots()  # Create a figure containing a single axes.
-        ax.plot(errors[initial:final])  # Plot some data on the axes.
+        fig, ax = plt.subplots()  
+        ax.plot(errors[initial:final])  
         plt.show()
-    
+        
+            
+            
+        
 
 
 
-    
+ 
+if __name__ == "__main__":
+       
+    net_controller()
         
         
         

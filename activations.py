@@ -21,6 +21,10 @@ class Activation_Layer():
 
 
 class Tanh():
+    
+    
+    def __str__(self) -> str:
+        return "Tanh"
     def forward(self, input_dense, *args):
         self.input_dense = input_dense
         self.output_activation = np.tanh(input_dense)
@@ -32,6 +36,10 @@ class Tanh():
 
 
 class ReLU():
+    
+    
+    def __str__(self) -> str:
+        return "ReLU"
     def forward(self, input_dense, *args):
         self.input_dense = input_dense
         self.output_activation = np.maximum(self.input_dense, 0)
@@ -43,6 +51,10 @@ class ReLU():
 
 
 class Sigmoid():
+    
+    
+    def __str__(self) -> str:
+        return "Sigmoid"
     def forward(self, input_dense, *args):
         self.input_dense = input_dense
         self.output_activation = 1 / (1 + np.exp(- self.input_dense))
@@ -56,6 +68,9 @@ class Sigmoid():
 class Softmax_CrossEntropy(): # < ---- softmax con crossentropy loss, usar con softmax_crossentropy_der en derivada de loss
     """Softmax with crossentropy loss, use in conjunction with softmax_crossentropy_der as loss derivative
     """
+    
+    def __str__(self) -> str:
+        return "Softmax with crossentropy loss"
     def forward(self, input_dense, *args):
         self.input_dense = input_dense
         self.normalized = self.input_dense - np.max(self.input_dense)
@@ -70,6 +85,9 @@ class Softmax_CrossEntropy(): # < ---- softmax con crossentropy loss, usar con s
 class Softmax():   # <--- solo usar sin crossentropy loss
     """Softmax indenpendient of crossentropy loss, if crossentropy loss is requiered use cross_entropy_loss_der as derivative of loss function.
     """
+    
+    def __str__(self) -> str:
+        return "Softmax indenpendient of crossentropy loss"
     def forward(self, input, *args):
         self.input=input
         self.normalized = self.input - np.max(self.input)
@@ -98,43 +116,70 @@ class Softmax():   # <--- solo usar sin crossentropy loss
 ########## LOSS CALCULATORS  #############
 
 def mean_square_error(y, y_pred):
+    """Mean square error
+
+    Args:
+        y (list): real labels
+        y_pred (list): predicted values
+
+    Returns:
+        float: mse
+    """
     mse = np.mean(np.power(y - y_pred, 2))
     return mse
 
 def mean_square_error_der(y, y_pred):
+    """ Mean square error derivative
+
+    Args:
+        y (list): real labels
+        y_pred (list): predicted values
+
+    Returns:
+        float: mse derivative
+    """
     mseder = 2 * (y_pred - y) / np.size(y)
     return mseder
 
-def none_der(y, ypred):pass
-
-
-    
+   
 def cross_entropy_loss(y, y_pred):
+    """Cross entropy loss
+
+    Args:
+        y (list): real labels
+        y_pred (list): predicted values
+
+    Returns:
+        float: cel
+    """
     m = np.shape(y[1])[0]
     xentropy_loss = (np.sum( - y *np.log(y_pred)))/m
     return xentropy_loss
 
 def softmax_crossentropy_der(y, y_pred):
+    """Cross entropy loss to be used with softmax activation
+
+    Args:
+        y (list): real labels
+        y_pred (list): predicted values
+
+    Returns:
+        float: cel
+    """
     softmax_crossentropy_der = y_pred - y
     return softmax_crossentropy_der
 
-def cross_entropy_loss(y, y_pred):
-    m = np.shape(y[1])[0]
-    xentropy_loss = (np.sum( - y *np.log(y_pred)))/m
-    return xentropy_loss
-
 def cross_entropy_loss_der(y, y_pred):
+    """Cross entropy loss derivative
+
+    Args:
+        y (list): real labels
+        y_pred (list): predicted values
+
+    Returns:
+        float: cel derivative
+    """
     m = np.shape(y[1])[0]
     xentropy_der = (-(y * 1/y_pred))/m
     return xentropy_der
-
-def cross_entropy_loss_deriv (y, y_pred):
-    xentropy_der = np.sum(-y * 1/y_pred, axis=1, keepdims=True)/y_pred.shape[1]
-    return xentropy_der
-
-def softmaxuda(x):
-    """Compute softmax values for each sets of scores in x."""
-    e_x = np.exp(x - np.max(x))
-    return e_x / e_x.sum(axis=0) # only difference
-
 

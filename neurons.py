@@ -13,8 +13,20 @@ class Dense():
         #self.biases = np.random.randn(n_neurons, 1) 
         self.batchsize = batchsize
     def __str__(self) -> str:
-        return f"Dense({self.n_inputs}, {self.n_neurons}, {self.batchsize})"
+        
+        return f"Layer of {self.n_neurons} neurons"
     def forward(self, inputs, testing=False ,weightstest = None, biasestest = None):
+        """Forward Pass
+
+        Args:
+            inputs (list): Layer inputs
+            testing (bool, optional): Allows testing NN, blocking backward pass. Defaults to False.
+            weightstest (list, optional): Weights. Defaults to None.
+            biasestest (list, optional): Biases. Defaults to None.
+
+        Returns:
+            list: output
+        """
         self.stimulus = inputs
         
         if testing:
@@ -22,19 +34,20 @@ class Dense():
         else:
             
             self.potential = np.dot(self.weights , inputs) + self.biases #layer_output
-        #print(self.weight @ stimulus)
         
-        
-        
-        #self.potentialparc = np.dot(receptaculos.T , stimulus) +self.biases
-        #self.potentialmanual = np.dot(receptaculos , stimulus) + bias
-        return self.potential
-    def test(self, inputs, weightstest, biasestest):
-        self.potential = np.dot(weightstest , inputs) + biasestest
         return self.potential
     
     
-    def backward(self, output_gradient, learning_rate): #returns gradient backwards -> neuron evolution
+    def backward(self, output_gradient, learning_rate): #returns gradient backwards
+        """Backward Pass
+
+        Args:
+            output_gradient (list): activation gradient
+            learning_rate (float): learning rate
+
+        Returns:
+            list: gradient
+        """
         self.weight_gradient = 1 / self.batchsize * np.dot( output_gradient , self.stimulus.T)
         self.input_gradient = np.dot( self.weights.T , output_gradient)  #input_gradient
         self.weights -= learning_rate * self.weight_gradient 
