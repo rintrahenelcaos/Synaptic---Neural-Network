@@ -11,12 +11,12 @@ from activations import cross_entropy_loss, cross_entropy_loss_der, softmax_cros
 
 ##################### Config bellow ##############################
 
-DATA = mnist
+DATA = fashion_mnist
 """Db to train and test. Options:  
                                 mnist
                                 fashion_mnist"""
 
-EPOCHS = 200
+EPOCHS = 20
 """Training epochs"""
 
 LEARNING_RATE = 0.5
@@ -49,7 +49,7 @@ SHOW_NET = True
 SHOWER = False
 """Show each epoch with its error instead of progress bar"""
 
-GRAPH = False
+GRAPH = True
 """Show error graph after training"""
 
 TEST = True

@@ -10,22 +10,7 @@ from config import *
 
 
 
-pulsosimp =np.array( [[1,2,3]]).T
-pulso =np.array( [[1,2,3,4,5],
-          [2.0,5.0,-1.0,2.0,0],
-          [-1,7,3,-0.8,1]
-          ]).T
 
-y_true = np.array([[1,0,0],
-                   [0,1,0],
-                   [0,0,1]]) . T
-
-X = np.reshape([[0, 0], [0, 1], [1, 0], [1, 1]], (4, 2, 1))
-X2 = np.array([[0, 0], [0, 1], [1, 0], [1, 1]]).T
-Y = np.reshape([[0], [1], [1], [0]], (4, 1, 1))
-Y2 = np.array([[1, 0], [0, 1], [0, 1], [1, 0]]).T
-batch = tuple (zip(X, Y))
-errorrs = []
 
 def db_adapter(db):
     """Reshapes db into columns
