@@ -31,7 +31,7 @@ ACTIVATIONS = [ReLU(), Tanh(), Softmax_CrossEntropy()]
                                                   Sigmoid()
                                                   Tanh()
                                                   ReLU()
-    Softmax_CrossEntropy is used in conjunction with softmax_crossentropy_der ass LOSS_DER_FUNC"""
+    Softmax_CrossEntropy is used in conjunction with softmax_crossentropy_der as LOSS_DER_FUNC"""
 
 LOSS_FUNC = cross_entropy_loss
 """Loss function. Options: cross_entropy_loss
