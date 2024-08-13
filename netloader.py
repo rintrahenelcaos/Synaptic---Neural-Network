@@ -10,9 +10,11 @@ from keras.utils.np_utils import to_categorical
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 
+import threading
 
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import *
+from PyQt5.QtCore import QObject, QThread, pyqtSignal
 
 from activations import Activation_Layer, Softmax, Softmax_CrossEntropy, Sigmoid, Tanh,ReLU
 from activations import cross_entropy_loss, cross_entropy_loss_der, cross_entropy_loss_deriv, softmax_crossentropy_der, mean_square_error, mean_square_error_der
@@ -50,6 +52,27 @@ MainWindow = QtWidgets.QMainWindow()
 ui = Ui_MainWindow()
 ui.setupUi(MainWindow)
 """
+
+network = Net_Propper
+
+class Trainer(QObject):
+    
+    trained = pyqtSignal()
+    
+    def networktrainthread(self, trainer_images, trainer_labels, neuronclip, activationsclip, epochs , learning_rate, lossfunclip, losscalder):
+        
+        self.network = Net_Propper(trainer_images, trainer_labels, neuronclip, activationsclip, epochs , learning_rate, lossfunclip, losscalder)
+        self.network.control_function()
+        self.traindewei, self.trainedbi = self.network.starttrain(True, True)
+        self.trained.emit()
+    
+    #def trainerthred(self):
+        
+        
+        
+
+
+
 class NetLoader():
     def __init__(self):
         #app = QtWidgets.QApplication(sys.argv)

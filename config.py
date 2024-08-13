@@ -16,7 +16,7 @@ DATA = fashion_mnist
                                 mnist
                                 fashion_mnist"""
 
-EPOCHS = 20
+EPOCHS = 1000
 """Training epochs"""
 
 LEARNING_RATE = 0.5
@@ -49,7 +49,7 @@ SHOW_NET = True
 SHOWER = False
 """Show each epoch with its error instead of progress bar"""
 
-GRAPH = True
+GRAPH = False
 """Show error graph after training"""
 
 TEST = True

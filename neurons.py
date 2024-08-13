@@ -2,7 +2,7 @@ import numpy as np
 
 
 
-class Dense(): 
+class Dense(): # Each instance creates a layer of neur 
     """Neuron propper
     """
     def __init__(self, n_inputs, n_neurons, batchsize):

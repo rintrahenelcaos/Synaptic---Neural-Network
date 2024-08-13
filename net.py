@@ -12,7 +12,7 @@ from config import *
 
 
 
-def db_adapter(db):
+def db_adapter(db):  # Configured only to work on keras dbs
     """Reshapes db into columns
 
     Args:
@@ -41,21 +41,21 @@ def net_controller():
     print("Welcome to Synapsis", end = "\n")
     print("\n")
     
-    if len(NEURONS)+1 == len(ACTIVATIONS):
+    if len(NEURONS)+1 == len(ACTIVATIONS): # If everything is OK, launch the NN
         print("="*50+" Training "+"="*50, end= "\n")
         print("\n")
     
         data = DATA
 
-        trainer_images, trainer_labels, tester_images, tester_labels = db_adapter(data)
+        trainer_images, trainer_labels, tester_images, tester_labels = db_adapter(data) # Get the data
     
-        netter = Net_Propper(trainer_images, trainer_labels, NEURONS, ACTIVATIONS, EPOCHS, LEARNING_RATE, LOSS_FUNC, LOSS_DER_FUNC)
+        netter = Net_Propper(trainer_images, trainer_labels, NEURONS, ACTIVATIONS, EPOCHS, LEARNING_RATE, LOSS_FUNC, LOSS_DER_FUNC) # Create the NN
         
-        traindewei, trainedbi = netter.train(SHOWER, GRAPH)
+        traindewei, trainedbi = netter.train(SHOWER, GRAPH) # Train NN and get the final weights and biases
         
         if TEST:
         
-            netter.test(traindewei,trainedbi, tester_images, tester_labels, VS)  
+            netter.test(traindewei,trainedbi, tester_images, tester_labels, VS)  # if testing is checked, use the traning weights and biases
     else: print("Error: Number of layers must be equal to number of assign activations minus 1")
     
 
@@ -85,19 +85,19 @@ class Net_Propper():
         self.layerout = expected.shape[0]
         self.numberoflayers = len(activations)
         self.neurons = []
-        for x in range(len(layerneurons)):
+        for x in range(len(layerneurons)):  # Create the layers without activations
             if x==0:
                 
-                self.neurons.append(Dense(self.inputs, layerneurons[x],self.batchsize))
+                self.neurons.append(Dense(self.inputs, layerneurons[x],self.batchsize)) # first layer gets the input directly from the db
                 
             else:
                 
-                self.neurons.append(Dense(layerneurons[x-1], layerneurons[x], self.batchsize))
+                self.neurons.append(Dense(layerneurons[x-1], layerneurons[x], self.batchsize)) # others get it from previous layers
                 
-        self.neurons.append(Dense(layerneurons[-1], self.layerout, self.batchsize))
+        self.neurons.append(Dense(layerneurons[-1], self.layerout, self.batchsize)) # add the last layer
         
         self.network = []
-        for i in range(self.numberoflayers):
+        for i in range(self.numberoflayers):    # combine the neurons list and the activations list to form the layers
             self.network.append(self.neurons[i])
             self.network.append(activations[i])
         
@@ -123,7 +123,7 @@ class Net_Propper():
         print("\n")
         
     
-    def starttrain(self, shower = False, graph = False):  # not working
+    def starttrain(self, shower = False, graph = False):  # not working, outdated by train method
         self.epochcounter = 0 
         self.lapmarc = 0
         
@@ -152,14 +152,14 @@ class Net_Propper():
 
         print("Progress: ")
         
-        for e in range(self.epochs):
+        for e in range(self.epochs): # main loop of the NN. For every epoch it loops forward and backwards the list of layers
             self.weightslist = []
             self.biaslist = []
             self.lapmarc = 0
 
             output = self.inputtrain
-            for layer in self.network:
-                output = layer.forward(output)
+            for layer in self.network: # loop the list of layers and activations forward
+                output = layer.forward(output) # Call the forward method
                 self.lapmarc+=1
             
             
@@ -168,21 +168,21 @@ class Net_Propper():
 
             grad = self.losscalder(self.expected, output)
 
-            for layer in reversed(self.network):
-                grad = layer.backward(grad, self.learningrate)
+            for layer in reversed(self.network): # loop the list of layers and activations backwards
+                grad = layer.backward(grad, self.learningrate) # Call the backward method
                 self.lapmarc+=1
-                if isinstance(layer,Dense):
+                if isinstance(layer,Dense): # only on neurons, the modified weights and biasses are stored
                     self.weightslist.append(layer.weights)
                     self.biaslist.append(layer.biases)
 
             error /=len(self.inputtrain)
             errorrs.append(error)
             self.epochcounter =((self.epochcounter+1)/self.epochs)*100
-            if shower: 
-                print(f"{e + 1}/{self.epochs}, error={error}")
+            if shower:  # 
+                print(f"{e + 1}/{self.epochs}, error={error}") 
             else:
                 
-                self.progress(int((e+1)/self.epochs*100))
+                self.progress(int((e+1)/self.epochs*100),width=100)
                 
             self.weightslist.reverse()
             self.biaslist.reverse()
@@ -196,7 +196,7 @@ class Net_Propper():
 
         return self.weightslist, self.biaslist 
     
-    def progress(self, percent=0, width=200):
+    def progress(self, percent=0, width=100):
         """Shows progress bar
 
         Args:
@@ -252,7 +252,7 @@ class Net_Propper():
                 self.positives += 1
         return self.positives
     
-    def test(self, trainedweihgtlist, trainedbiaseslist, testx, testy, vs = True):  
+    def test(self, trainedweihgtlist, trainedbiaseslist, testx, testy, vs = True):  # bassically a forward pass with the trained NN
         """ Test model
 
         Args:
