@@ -16,8 +16,8 @@ The app basically consists of two parts, the network creator (net.py) and networ
 
 Libraries:
 * numpy
-* PyQt5 (both UI and thread)
-* SQLite3
+* mathplotlib
+* tensorflow - keras (database only)
 
 
 ### Executing program
