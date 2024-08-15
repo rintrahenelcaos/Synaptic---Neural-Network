@@ -16,7 +16,7 @@ DATA = fashion_mnist
                                 mnist
                                 fashion_mnist"""
 
-EPOCHS = 1000
+EPOCHS = 100
 """Training epochs"""
 
 LEARNING_RATE = 0.5

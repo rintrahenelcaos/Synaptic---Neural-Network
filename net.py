@@ -1,3 +1,8 @@
+######################################################
+### Synapsis Neural Network                       ####
+### Author: Leonardo Mario Mazzeo                 ####
+######################################################
+
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.pyplot as plt
